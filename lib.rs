@@ -25,7 +25,9 @@
 extern crate memoffset;
 extern crate serde;
 extern crate stable_deref_trait;
+extern crate quickcheck;
 
+use quickcheck::Arbitrary;
 use serde::{Deserialize, Serialize};
 use stable_deref_trait::{CloneStableDeref, StableDeref};
 use std::alloc::Layout;
@@ -465,6 +467,12 @@ impl<T: ?Sized> AsRef<T> for Arc<T> {
         &**self
     }
 }
+
+impl<T: Arbitrary + Send + Sync + 'static> Arbitrary for Arc<T> {
+    fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> Arc<T> {
+        Arc::new(Arbitrary::arbitrary(g))
+    }
+} 
 
 unsafe impl<T: ?Sized> StableDeref for Arc<T> {}
 unsafe impl<T: ?Sized> CloneStableDeref for Arc<T> {}
